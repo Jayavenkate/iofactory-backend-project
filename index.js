@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import auth from "./middleware/auth.js";
+import axios from "axios";
 dotenv.config();
 
 const PORT = 4000;
@@ -81,6 +82,30 @@ app.post("/login", async function (req, res) {
     res.send({ message: "err" });
   }
 });
+//save api data from TMDB
+
+app.post("/save-movie-data", async function (req, res) {
+  try {
+    const response = await axios.get(
+      "https://api.themoviedb.org/3/movie/now_playing?api_key=bc91b6e15fa51d6cd4117cb150ca4556",
+      {
+        params: {
+          api_key: "bc91b6e15fa51d6cd4117cb150ca4556",
+        },
+      }
+    );
+    const movies = response.data.results;
+    const result = await client
+      .db("b42wd2")
+      .collection("iofactory")
+      .insertMany(movies);
+    console.log(result);
+    res.status(200).send({ message: "insert Successfully", result });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 //create
 
 app.post("/createmovie", async function (req, res) {
@@ -102,7 +127,7 @@ app.post("/createmovie", async function (req, res) {
         .db("b42wd2")
         .collection("iofactory")
         .insertOne(data);
-      res.status(200).send(result);
+      res.status(200).send({ message: "movie create successfully", result });
       console.log(result);
     }
   } catch (err) {
